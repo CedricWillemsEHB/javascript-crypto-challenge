@@ -33,6 +33,7 @@ describe('key exchange', () => {
     ciphertext = nacl.crypto_secretbox_easy(msg, nonce, tx)
   })
 
+  
   it('returns its public key', () => {
     expect(serverPublicKey).toBeDefined()
   })
