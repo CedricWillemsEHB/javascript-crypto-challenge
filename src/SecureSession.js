@@ -1,45 +1,42 @@
-const nacl = require('libsodium-wrappers')
+const nacl = require('libsodium-wrappers');
 
-async function init() {
-    await nacl.ready
-}
+let clientPublicKey
+let rx, tx;
 
-let publicKey, serverPublicKey, serverPrivateKey
-let rx, tx
 
 module.exports = {
-    setClientPublicKey: function (clientPublicKey) {
-        if (publicKey != null && publicKey !== clientPublicKey) {
-            throw "Client public key already exist"
+
+    setClientPublicKey: (key) => {
+        if (clientPublicKey != null && clientPublicKey !== key) {
+            throw "client public key already set"
         }
-        else {
-            key = clientPublicKey
-        }
+        clientPublicKey = key; 
     },
 
-    serverPublicKey: function () {
-        const keyPair = nacl.crypto_kx_keypair()
-        serverPrivateKey = keyPair.privateKey
-        serverPublicKey = keyPair.publicKey
+    serverPublicKey: async () => {
+        const keyPair = nacl.crypto_kx_keypair();
+        let serverPrivateKey = keyPair.privateKey;
+        let serverPublicKey = keyPair.publicKey;
 
-        const sharedKeys = nacl.crypto_kx_server_session_keys(
+        const sharedKeys = await nacl.crypto_kx_server_session_keys(
             serverPublicKey,
             serverPrivateKey,
-            publicKey
-        )
-        rx = sharedKeys.sharedRx
-        tx = sharedKeys.sharedTx
+            clientPublicKey
+        );
+        rx = sharedKeys.sharedRx;
+        tx = sharedKeys.sharedTx;
 
-        return serverPublicKey
+        return serverPublicKey;
     },
 
-    decrypt: async function (ciphertext, nonce) {
-        return nacl.crypto_secretbox_open_easy(ciphertext, nonce, rx)
+    decrypt: async (ciphertext, nonce) => {
+        return nacl.crypto_secretbox_open_easy(ciphertext, nonce, rx);
     },
 
-    encrypt: async function (msg) {
-        let nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES)
-        let ciphertext = nacl.crypto_secretbox_easy(msg, nonce, tx)
-        return {ciphertext, nonce}
+    encrypt: async (msg)  => {
+        let nonce = nacl.randombytes_buf(nacl.crypto_secretbox_NONCEBYTES);
+        let ciphertext = nacl.crypto_secretbox_easy(msg, nonce, tx);
+
+        return {ciphertext, nonce};
     }
-}
+};
