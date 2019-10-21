@@ -1,16 +1,23 @@
 const nacl = require('libsodium-wrappers')
-let sleutel;
 
-module.exports.setKey = async (key) => 
-{
-    sleutel = key;
+async function init() {
+    await nacl.ready
 }
 
-module.exports.decrypt = async (ciphertext, nonce) => 
-{
-    if (!sleutel) 
-    { 
-        throw "no key"; 
+let cryptKey;
+
+module.exports = {
+    setKey: function (key)
+    {
+        cryptKey = key;
+    },
+
+    decrypt: async function (ciphertext, nonce)
+    {
+        if(cryptKey == null){
+            throw 'no key'
+        }
+
+        return nacl.crypto_secretbox_open_easy(ciphertext, nonce, cryptKey)
     }
-    return sodium.crypto_secretbox_open_easy(ciphertext, nonce, key);
-}
+};
