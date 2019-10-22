@@ -2,9 +2,7 @@ const nacl = require('libsodium-wrappers')
 
 let publicKey, privateKey;
 
-async function ready() {
-    await nacl.ready
-}
+async function ready() {await nacl.ready}
 
 module.exports = {
     verifyingKey: async function ()
